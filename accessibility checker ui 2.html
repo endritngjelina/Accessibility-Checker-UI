@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AccessibilityPro - Enterprise Accessibility Checker</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .input-panel, .results-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .panel-header i {
+            margin-right: 12px;
+            color: #667eea;
+        }
+
+        .input-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 4px;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            color: #6c757d;
+        }
+
+        .tab-button.active {
+            background: #667eea;
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea.input-field {
+            min-height: 200px;
+            resize: vertical;
+        }
+
+        .analyze-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .analyze-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .analyze-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .analyze-button .loading {
+            display: none;
+        }
+
+        .analyze-button.loading .loading {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .score-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .score-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .score-card.excellent {
+            border-color: #28a745;
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+        }
+
+        .score-card.good {
+            border-color: #ffc107;
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+        }
+
+        .score-card.poor {
+            border-color: #dc3545;
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+        }
+
+        .score-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .checks-container {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .check-category {
+            margin-bottom: 25px;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .category-header i {
+            margin-right: 10px;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            background: #f8f9fa;
+            border-left: 4px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .check-item.passed {
+            border-left-color: #28a745;
+            background: linear-gradient(90deg, rgba(40, 167, 69, 0.1), transparent);
+        }
+
+        .check-item.failed {
+            border-left-color: #dc3545;
+            background: linear-gradient(90deg, rgba(220, 53, 69, 0.1), transparent);
+        }
+
+        .check-item.warning {
+            border-left-color: #ffc107;
+            background: linear-gradient(90deg, rgba(255, 193, 7, 0.1), transparent);
+        }
+
+        .check-icon {
+            margin-right: 15px;
+            font-size: 1.2rem;
+        }
+
+        .check-icon.passed {
+            color: #28a745;
+        }
+
+        .check-icon.failed {
+            color: #dc3545;
+        }
+
+        .check-icon.warning {
+            color: #ffc107;
+        }
+
+        .check-content {
+            flex: 1;
+        }
+
+        .check-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+
+        .check-description {
+            font-size: 0.9rem;
+            color: #6c757d;
+            line-height: 1.4;
+        }
+
+        .recommendations {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .export-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn.pdf {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .export-btn.json {
+            background: #3498db;
+            color: white;
+        }
+
+        .export-btn.csv {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 1s ease;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .score-overview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-universal-access"></i> AccessibilityPro</h1>
+            <p>Enterprise-grade accessibility analysis for web applications. Ensure WCAG 2.1 AA compliance with comprehensive automated testing.</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-panel">
+                <div class="panel-header">
+                    <i class="fas fa-code"></i>
+                    Input Analysis
+                </div>
+
+                <div class="input-tabs">
+                    <button class="tab-button active" onclick="switchTab('code')">
+                        <i class="fas fa-code"></i> HTML Code
+                    </button>
+                    <button class="tab-button" onclick="switchTab('url')">
+                        <i class="fas fa-link"></i> URL Analysis
+                    </button>
+                </div>
+
+                <div id="code-input" class="input-content">
+                    <div class="input-group">
+                        <label for="html-code">Paste your HTML code:</label>
+                        <textarea id="html-code" class="input-field" placeholder="<html>&#10;<head>&#10;  <title>Your Web Page</title>&#10;</head>&#10;<body>&#10;  <h1>Main Heading</h1>&#10;  <p>Your content here...</p>&#10;</body>&#10;</html>"></textarea>
+                    </div>
+                </div>
+
+                <div id="url-input" class="input-content hidden">
+                    <div class="input-group">
+                        <label for="url-field">Enter website URL:</label>
+                        <input type="url" id="url-field" class="input-field" placeholder="https://example.com">
+                    </div>
+                    <p style="font-size: 0.9rem; color: #6c757d; margin-top: 10px;">
+                        <i class="fas fa-info-circle"></i> Note: Due to CORS limitations, URL analysis provides simulated results for demonstration purposes.
+                    </p>
+                </div>
+
+                <button class="analyze-button" onclick="analyzeContent()">
+                    <span class="button-text">
+                        <i class="fas fa-search"></i> Analyze Accessibility
+                    </span>
+                    <span class="loading">
+                        <i class="fas fa-spinner"></i> Analyzing...
+                    </span>
+                </button>
+
+                <div class="progress-bar" id="progress-bar" style="display: none;">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+
+            <div class="results-panel">
+                <div class="panel-header">
+                    <i class="fas fa-chart-bar"></i>
+                    Analysis Results
+                </div>
+
+                <div id="results-content">
+                    <div style="text-align: center; padding: 60px 20px; color: #6c757d;">
+                        <i class="fas fa-clipboard-list" style="font-size: 3rem; margin-bottom: 20px; opacity: 0.3;"></i>
+                        <p style="font-size: 1.1rem;">Enter HTML code or URL above to begin accessibility analysis</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="recommendations hidden" id="recommendations">
+            <div class="panel-header">
+                <i class="fas fa-lightbulb"></i>
+                Recommendations & Best Practices
+            </div>
+            <div id="recommendations-content"></div>
+            
+            <div class="export-buttons">
+                <button class="export-btn pdf" onclick="exportResults('pdf')">
+                    <i class="fas fa-file-pdf"></i> Export PDF
+                </button>
+                <button class="export-btn json" onclick="exportResults('json')">
+                    <i class="fas fa-file-code"></i> Export JSON
+                </button>
+                <button class="export-btn csv" onclick="exportResults('csv')">
+                    <i class="fas fa-file-csv"></i> Export CSV
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'code';
+        let analysisResults = null;
+
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Show/hide content
+            document.getElementById('code-input').classList.toggle('hidden', tab !== 'code');
+            document.getElementById('url-input').classList.toggle('hidden', tab !== 'url');
+        }
+
+        function analyzeContent() {
+            const button = document.querySelector('.analyze-button');
+            const progressBar = document.getElementById('progress-bar');
+            const progressFill = document.getElementById('progress-fill');
+            
+            button.classList.add('loading');
+            button.disabled = true;
+            progressBar.style.display = 'block';
+            
+            // Simulate progress
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 90) progress = 90;
+                progressFill.style.width = progress + '%';
+            }, 100);
+
+            setTimeout(() => {
+                clearInterval(progressInterval);
+                progressFill.style.width = '100%';
+                
+                setTimeout(() => {
+                    let content;
+                    if (currentTab === 'code') {
+                        content = document.getElementById('html-code').value;
+                        if (!content.trim()) {
+                            alert('Please enter HTML code to analyze.');
+                            resetButton();
+                            return;
+                        }
+                        performCodeAnalysis(content);
+                    } else {
+                        content = document.getElementById('url-field').value;
+                        if (!content.trim()) {
+                            alert('Please enter a URL to analyze.');
+                            resetButton();
+                            return;
+                        }
+                        performURLAnalysis(content);
+                    }
+                    
+                    resetButton();
+                }, 500);
+            }, 2000);
+        }
+
+        function resetButton() {
+            const button = document.querySelector('.analyze-button');
+            const progressBar = document.getElementById('progress-bar');
+            
+            button.classList.remove('loading');
+            button.disabled = false;
+            progressBar.style.display = 'none';
+            document.getElementById('progress-fill').style.width = '0%';
+        }
+
+        function performCodeAnalysis(htmlContent) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
+            
+            const checks = {
+                semantic: analyzeSemanticStructure(doc),
+                images: analyzeImages(doc),
+                forms: analyzeForms(doc),
+                navigation: analyzeNavigation(doc),
+                color: analyzeColorContrast(htmlContent),
+                aria: analyzeARIA(doc),
+                keyboard: analyzeKeyboardAccess(doc),
+                structure: analyzeDocumentStructure(doc)
+            };
+
+            displayResults(checks);
+        }
+
+        function performURLAnalysis(url) {
+            // Simulated analysis for demonstration
+            const simulatedChecks = {
+                semantic: [
+                    { type: 'passed', title: 'Page Title Present', description: 'Page has a descriptive title' },
+                    { type: 'warning', title: 'Heading Structure', description: 'Consider improving heading hierarchy' }
+                ],
+                images: [
+                    { type: 'failed', title: 'Missing Alt Text', description: '3 images found without alt attributes' },
+                    { type: 'passed', title: 'Decorative Images', description: 'Decorative images properly marked' }
+                ],
+                forms: [
+                    { type: 'passed', title: 'Form Labels', description: 'All form inputs have associated labels' }
+                ],
+                navigation: [
+                    { type: 'passed', title: 'Skip Links', description: 'Skip navigation links present' },
+                    { type: 'warning', title: 'Focus Indicators', description: 'Some focus indicators could be improved' }
+                ],
+                color: [
+                    { type: 'passed', title: 'Color Contrast', description: 'Text meets WCAG AA standards' }
+                ],
+                aria: [
+                    { type: 'passed', title: 'ARIA Labels', description: 'Interactive elements have appropriate ARIA labels' },
+                    { type: 'warning', title: 'Landmark Roles', description: 'Consider adding more landmark roles' }
+                ],
+                keyboard: [
+                    { type: 'passed', title: 'Keyboard Navigation', description: 'All interactive elements are keyboard accessible' }
+                ],
+                structure: [
+                    { type: 'passed', title: 'HTML Validation', description: 'HTML structure is valid' },
+                    { type: 'warning', title: 'Language Attribute', description: 'Consider specifying language for all content' }
+                ]
+            };
+
+            displayResults(simulatedChecks);
+        }
+
+        function analyzeSemanticStructure(doc) {
+            const checks = [];
+            
+            // Check for proper heading structure
+            const headings = doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
+            if (headings.length === 0) {
+                checks.push({ type: 'failed', title: 'No Headings Found', description: 'Page lacks heading structure for screen readers' });
+            } else {
+                const h1Count = doc.querySelectorAll('h1').length;
+                if (h1Count === 0) {
+                    checks.push({ type: 'failed', title: 'Missing H1', description: 'Page should have exactly one H1 element' });
+                } else if (h1Count > 1) {
+                    checks.push({ type: 'warning', title: 'Multiple H1 Elements', description: `Found ${h1Count} H1 elements, consider using only one` });
+                } else {
+                    checks.push({ type: 'passed', title: 'Proper H1 Usage', description: 'Page has exactly one H1 element' });
+                }
+            }
+
+            // Check for semantic HTML5 elements
+            const semanticElements = ['main', 'nav', 'header', 'footer', 'section', 'article', 'aside'];
+            let semanticCount = 0;
+            semanticElements.forEach(element => {
+                if (doc.querySelector(element)) semanticCount++;
+            });
+
+            if (semanticCount === 0) {
+                checks.push({ type: 'failed', title: 'No Semantic Elements', description: 'Consider using HTML5 semantic elements' });
+            } else if (semanticCount < 3) {
+                checks.push({ type: 'warning', title: 'Limited Semantic Structure', description: `Found ${semanticCount} semantic elements, consider adding more` });
+            } else {
+                checks.push({ type: 'passed', title: 'Good Semantic Structure', description: `Found ${semanticCount} different semantic elements` });
+            }
+
+            return checks;
+        }
+
+        function analyzeImages(doc) {
+            const checks = [];
+            const images = doc.querySelectorAll('img');
+            
+            if (images.length === 0) {
+                checks.push({ type: 'passed', title: 'No Images to Check', description: 'No images found in the document' });
+                return checks;
+            }
+
+            let missingAlt = 0;
+            let emptyAlt = 0;
+            let goodAlt = 0;
+
+            images.forEach(img => {
+                if (!img.hasAttribute('alt')) {
+                    missingAlt++;
+                } else if (img.alt.trim() === '') {
+                    emptyAlt++;
+                } else {
+                    goodAlt++;
+                }
+            });
+
+            if (missingAlt > 0) {
+                checks.push({ type: 'failed', title: 'Missing Alt Attributes', description: `${missingAlt} images without alt attributes` });
+            }
+
+            if (goodAlt > 0) {
+                checks.push({ type: 'passed', title: 'Images with Alt Text', description: `${goodAlt} images have descriptive alt text` });
+            }
+
+            if (emptyAlt > 0) {
+                checks.push({ type: 'passed', title: 'Decorative Images', description: `${emptyAlt} images properly marked as decorative` });
+            }
+
+            return checks;
+        }
+
+        function analyzeForms(doc) {
+            const checks = [];
+            const forms = doc.querySelectorAll('form');
+            const inputs = doc.querySelectorAll('input, textarea, select');
+            
+            if (inputs.length === 0) {
+                checks.push({ type: 'passed', title: 'No Form Elements', description: 'No form elements found to check' });
+                return checks;
+            }
+
+            let unlabeledInputs = 0;
+            inputs.forEach(input => {
+                if (!input.id || !doc.querySelector(`label[for="${input.id}"]`)) {
+                    unlabeledInputs++;
+                }
+            });
+
+            if (unlabeledInputs === 0) {
+                checks.push({ type: 'passed', title: 'All Inputs Labeled', description: 'All form inputs have associated labels' });
+            } else {
+                checks.push({ type: 'failed', title: 'Unlabeled Inputs', description: `${unlabeledInputs} form inputs lack proper labels` });
+            }
+
+            // Check for fieldsets
+            const fieldsets = doc.querySelectorAll('fieldset');
+            if (forms.length > 0 && fieldsets.length === 0) {
+                checks.push({ type: 'warning', title: 'Consider Fieldsets', description: 'Group related form controls with fieldsets' });
+            }
+
+            return checks;
+        }
+
+        function analyzeNavigation(doc) {
+            const checks = [];
+            
+            // Check for navigation elements
+            const navs = doc.querySelectorAll('nav');
+            if (navs.length > 0) {
+                checks.push({ type: 'passed', title: 'Navigation Present', description: `Found ${navs.length} navigation element(s)` });
+            } else {
+                checks.push({ type: 'warning', title: 'No Navigation Elements', description: 'Consider using <nav> elements for navigation' });
+            }
+
+            // Check for skip links
+            const skipLinks = doc.querySelectorAll('a[href^="#"]');
+            if (skipLinks.length > 0) {
+                checks.push({ type: 'passed', title: 'Skip Links Present', description: 'Found internal anchor links (potential skip links)' });
+            } else {
+                checks.push({ type: 'warning', title: 'Consider Skip Links', description: 'Add skip links for keyboard navigation' });
+            }
+
+            return checks;
+        }
+
+        function analyzeColorContrast(htmlContent) {
+            const checks = [];
+            
+            // Simple color analysis (basic implementation)
+            if (htmlContent.includes('color:') || htmlContent.includes('background')) {
+                checks.push({ type: 'warning', title: 'Color Usage Detected', description: 'Manual contrast ratio verification recommended' });
+            } else {
+                checks.push({ type: 'passed', title: 'Default Colors', description: 'Using browser default colors (typically accessible)' });
+            }
+
+            return checks;
+        }
+
+        function analyzeARIA(doc) {
+            const checks = [];
+            
+            const ariaElements = doc.querySelectorAll('[aria-label], [aria-labelledby], [aria-describedby], [role]');
+            if (ariaElements.length > 0) {
+                checks.push({ type: 'passed', title: 'ARIA Attributes Present', description: `Found ${ariaElements.length} elements with ARIA attributes` });
+            } else {
+                checks.push({ type: 'warning', title: 'Limited ARIA Usage', description: 'Consider adding ARIA attributes for better accessibility' });
+            }
+
+            // Check for landmark roles
+            const landmarks = doc.querySelectorAll('[role="banner"], [role="navigation"], [role="main"], [role="contentinfo"]');
+            if (landmarks.length > 0) {
+                checks.push({ type: 'passed', title: 'Landmark Roles', description: `Found ${landmarks.length} landmark role(s)` });
+            }
+
+            return checks;
+        }
+
+        function analyzeKeyboardAccess(doc) {
+            const checks = [];
+            
+            // Check for tabindex usage
+            const tabindexElements = doc.querySelectorAll('[tabindex]');
+            const negativeTabindex = doc.querySelectorAll('[tabindex="-1"]');
+            
+            if (tabindexElements.length > negativeTabindex.length) {
+                checks.push({ type: 'warning', title: 'Custom Tab Order', description: 'Custom tabindex detected, ensure logical tab order' });
+            } else {
+                checks.push({ type: 'passed', title: 'Natural Tab Order', description: 'Using natural document tab order' });
+            }
+
+            // Check for interactive elements
+            const interactiveElements = doc.querySelectorAll('button, a, input, textarea, select');
+            if (interactiveElements.length > 0) {
+                checks.push({ type: 'passed', title: 'Interactive Elements Found', description: `${interactiveElements.length} keyboard-accessible elements` });
+            }
+
+            return checks;
+        }
+
+        function analyzeDocumentStructure(doc) {
+            const checks = [];
+            
+            // Check for title
+            const title = doc.querySelector('title');
+            if (title && title.textContent.trim()) {
+                checks.push({ type: 'passed', title: 'Page Title Present', description: `Title: "${title.textContent}"` });
+            } else {
+                checks.push({ type: 'failed', title: 'Missing Page Title', description: 'Page lacks a descriptive title' });
+            }
+
+            // Check for lang attribute
+            const html = doc.querySelector('html');
+            if (html && html.hasAttribute('lang')) {
+                checks.push({ type: 'passed', title: 'Language Specified', description: `Language: ${html.getAttribute('lang')}` });
+            } else {
+                checks.push({ type: 'warning', title: 'Missing Language', description: 'Specify page language with lang attribute' });
+            }
+
+            // Check for meta viewport
+            const viewport = doc.querySelector('meta[name="viewport"]');
+            if (viewport) {
+                checks.push({ type: 'passed', title: 'Viewport Meta Present', description: 'Page includes viewport meta tag' });
+            } else {
+                checks.push({ type: 'warning', title: 'Missing Viewport Meta', description: 'Add viewport meta for mobile accessibility' });
+            }
+
+            return checks;
+        }
+
+        function displayResults(checks) {
+            const resultsContent = document.getElementById('results-content');
+            const recommendations = document.getElementById('recommendations');
+            
+            // Calculate scores
+            let totalChecks = 0;
+            let passedChecks = 0;
+            let warningChecks = 0;
+            let failedChecks = 0;
+
+            Object.values(checks).forEach(categoryChecks => {
+                categoryChecks.forEach(check => {
+                    totalChecks++;
+                    if (check.type === 'passed') passedChecks++;
+                    else if (check.type === 'warning') warningChecks++;
+                    else failedChecks++;
+                });
+            });
+
+            const overallScore = Math.round((passedChecks / totalChecks) * 100);
+            
+            // Store results for export
+            analysisResults = {
+                overallScore,
+                totalChecks,
+                passedChecks,
+                warningChecks,
+                failedChecks,
+                checks,
+                timestamp: new Date().toISOString()
+            };
+
+            // Generate results HTML
+            let html = `
+                <div class="score-overview">
+                    <div class="score-card ${getScoreClass(overallScore)}">
+                        <div class="score-number">${overallScore}%</div>
+                        <div class="score-label">Overall Score</div>
+                    </div>
+                    <div class="score-card passed">
+                        <div class="score-number">${passedChecks}</div>
+                        <div class="score-label">Passed</div>
+                    </div>
+                    <div class="score-card warning">
+                        <div class="score-number">${warningChecks}</div>
+                        <div class="score-label">Warnings</div>
+                    </div>
+                    <div class="score-card poor">
+                        <div class="score-number">${failedChecks}</div>
+                        <div class="score-label">Failed</div>
+                    </div>
+                </div>
+                
+                <div class="checks-container">`;
+
+            const categories = {
+                structure: { icon: 'fas fa-sitemap', title: 'Document Structure' },
+                semantic: { icon: 'fas fa-code', title: 'Semantic HTML' },
+                images: { icon: 'fas fa-image', title: 'Images & Media' },
+                forms: { icon: 'fas fa-wpforms', title: 'Forms & Inputs' },
+                navigation: { icon: 'fas fa-compass', title: 'Navigation' },
+                color: { icon: 'fas fa-palette', title: 'Color & Contrast' },
+                aria: { icon: 'fas fa-universal-access', title: 'ARIA & Roles' },
+                keyboard: { icon: 'fas fa-keyboard', title: 'Keyboard Access' }
+            };
+
+            Object.entries(checks).forEach(([category, categoryChecks]) => {
+                if (categoryChecks.length > 0) {
+                    const categoryInfo = categories[category];
+                    html += `
+                        <div class="check-category">
+                            <div class="category-header">
+                                <i class="${categoryInfo.icon}"></i>
+                                ${categoryInfo.title}
+                            </div>`;
+
+                    categoryChecks.forEach(check => {
+                        html += `
+                            <div class="check-item ${check.type}">
+                                <div class="check-icon ${check.type}">
+                                    <i class="fas ${getCheckIcon(check.type)}"></i>
+                                </div>
+                                <div class="check-content">
+                                    <div class="check-title">${check.title}</div>
+                                    <div class="check-description">${check.description}</div>
+                                </div>
+                            </div>`;
+                    });
+
+                    html += `</div>`;
+                }
+            });
+
+            html += `</div>`;
+            resultsContent.innerHTML = html;
+
+            // Show recommendations
+            displayRecommendations(overallScore, failedChecks, warningChecks);
+            recommendations.classList.remove('hidden');
+        }
+
+        function getScoreClass(score) {
+            if (score >= 80) return 'excellent';
+            if (score >= 60) return 'good';
+            return 'poor';
+        }
+
+        function getCheckIcon(type) {
+            switch (type) {
+                case 'passed': return 'fa-check-circle';
+                case 'failed': return 'fa-times-circle';
+                case 'warning': return 'fa-exclamation-triangle';
+                default: return 'fa-question-circle';
+            }
+        }
+
+        function displayRecommendations(score, failed, warnings) {
+            const content = document.getElementById('recommendations-content');
+            
+            let recommendations = `
+                <div style="margin-bottom: 25px;">
+                    <h3 style="color: #2c3e50; margin-bottom: 15px;">
+                        <i class="fas fa-chart-line"></i> Performance Summary
+                    </h3>
+                    <p style="font-size: 1.1rem; line-height: 1.6; color: #495057;">
+                        Your accessibility score is <strong>${score}%</strong>. `;
+
+            if (score >= 90) {
+                recommendations += `Excellent work! Your content meets high accessibility standards.`;
+            } else if (score >= 70) {
+                recommendations += `Good foundation with room for improvement in ${failed + warnings} areas.`;
+            } else {
+                recommendations += `Significant improvements needed to meet accessibility standards.`;
+            }
+
+            recommendations += `</p></div>`;
+
+            // Priority recommendations
+            recommendations += `
+                <div style="margin-bottom: 25px;">
+                    <h3 style="color: #2c3e50; margin-bottom: 15px;">
+                        <i class="fas fa-exclamation-triangle"></i> Priority Actions
+                    </h3>`;
+
+            if (failed > 0) {
+                recommendations += `
+                    <div style="padding: 15px; background: #f8d7da; border-left: 4px solid #dc3545; margin-bottom: 15px; border-radius: 8px;">
+                        <h4 style="color: #721c24; margin-bottom: 8px;">Critical Issues (${failed})</h4>
+                        <p style="color: #721c24; margin: 0;">Address failed checks immediately to meet basic accessibility requirements.</p>
+                    </div>`;
+            }
+
+            if (warnings > 0) {
+                recommendations += `
+                    <div style="padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107; margin-bottom: 15px; border-radius: 8px;">
+                        <h4 style="color: #856404; margin-bottom: 8px;">Improvement Opportunities (${warnings})</h4>
+                        <p style="color: #856404; margin: 0;">Enhance user experience by addressing warning items.</p>
+                    </div>`;
+            }
+
+            recommendations += `</div>`;
+
+            // Best practices
+            recommendations += `
+                <div style="margin-bottom: 25px;">
+                    <h3 style="color: #2c3e50; margin-bottom: 15px;">
+                        <i class="fas fa-star"></i> Best Practices
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                        <div style="padding: 15px; background: #e8f5e8; border-radius: 10px;">
+                            <h4 style="color: #155724; margin-bottom: 8px;"><i class="fas fa-keyboard"></i> Keyboard Navigation</h4>
+                            <p style="font-size: 0.9rem; color: #155724; margin: 0;">Test all interactive elements with Tab, Enter, and Space keys.</p>
+                        </div>
+                        <div style="padding: 15px; background: #e8f4f8; border-radius: 10px;">
+                            <h4 style="color: #0c5460; margin-bottom: 8px;"><i class="fas fa-eye"></i> Screen Reader Testing</h4>
+                            <p style="font-size: 0.9rem; color: #0c5460; margin: 0;">Use NVDA, JAWS, or VoiceOver to test your content.</p>
+                        </div>
+                        <div style="padding: 15px; background: #f8e8ff; border-radius: 10px;">
+                            <h4 style="color: #4a154b; margin-bottom: 8px;"><i class="fas fa-mobile-alt"></i> Mobile Accessibility</h4>
+                            <p style="font-size: 0.9rem; color: #4a154b; margin: 0;">Ensure touch targets are at least 44x44 pixels.</p>
+                        </div>
+                    </div>
+                </div>`;
+
+            // WCAG guidelines
+            recommendations += `
+                <div>
+                    <h3 style="color: #2c3e50; margin-bottom: 15px;">
+                        <i class="fas fa-book"></i> WCAG 2.1 Compliance Levels
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div style="padding: 15px; background: #f0f9ff; border: 2px solid #0ea5e9; border-radius: 10px;">
+                            <h4 style="color: #0369a1; margin-bottom: 8px;">Level A</h4>
+                            <p style="font-size: 0.9rem; color: #0369a1; margin: 0;">Basic accessibility features</p>
+                        </div>
+                        <div style="padding: 15px; background: #f0fdf4; border: 2px solid #22c55e; border-radius: 10px;">
+                            <h4 style="color: #16a34a; margin-bottom: 8px;">Level AA</h4>
+                            <p style="font-size: 0.9rem; color: #16a34a; margin: 0;">Standard compliance (recommended)</p>
+                        </div>
+                        <div style="padding: 15px; background: #fefce8; border: 2px solid #eab308; border-radius: 10px;">
+                            <h4 style="color: #ca8a04; margin-bottom: 8px;">Level AAA</h4>
+                            <p style="font-size: 0.9rem; color: #ca8a04; margin: 0;">Enhanced accessibility</p>
+                        </div>
+                    </div>
+                </div>`;
+
+            content.innerHTML = recommendations;
+        }
+
+        function exportResults(format) {
+            if (!analysisResults) {
+                alert('No results to export. Please run an analysis first.');
+                return;
+            }
+
+            switch (format) {
+                case 'pdf':
+                    exportToPDF();
+                    break;
+                case 'json':
+                    exportToJSON();
+                    break;
+                case 'csv':
+                    exportToCSV();
+                    break;
+            }
+        }
+
+        function exportToPDF() {
+            // Create a printable version
+            const printContent = `
+                <html>
+                <head>
+                    <title>Accessibility Report</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
+                        .score { font-size: 2em; color: #667eea; font-weight: bold; }
+                        .category { margin-bottom: 25px; }
+                        .category-title { background: #667eea; color: white; padding: 10px; font-weight: bold; }
+                        .check-item { padding: 10px; border-left: 4px solid #ddd; margin: 5px 0; }
+                        .passed { border-left-color: #28a745; }
+                        .failed { border-left-color: #dc3545; }
+                        .warning { border-left-color: #ffc107; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>AccessibilityPro Report</h1>
+                        <p>Generated on ${new Date().toLocaleDateString()}</p>
+                        <div class="score">Overall Score: ${analysisResults.overallScore}%</div>
+                    </div>
+                    ${generatePrintableResults()}
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob([printContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `accessibility-report-${Date.now()}.html`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportToJSON() {
+            const blob = new Blob([JSON.stringify(analysisResults, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `accessibility-report-${Date.now()}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportToCSV() {
+            let csv = 'Category,Check Title,Status,Description\n';
+            
+            Object.entries(analysisResults.checks).forEach(([category, checks]) => {
+                checks.forEach(check => {
+                    csv += `"${category}","${check.title}","${check.type}","${check.description}"\n`;
+                });
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `accessibility-report-${Date.now()}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function generatePrintableResults() {
+            let html = '';
+            const categories = {
+                structure: 'Document Structure',
+                semantic: 'Semantic HTML',
+                images: 'Images & Media',
+                forms: 'Forms & Inputs',
+                navigation: 'Navigation',
+                color: 'Color & Contrast',
+                aria: 'ARIA & Roles',
+                keyboard: 'Keyboard Access'
+            };
+
+            Object.entries(analysisResults.checks).forEach(([category, checks]) => {
+                if (checks.length > 0) {
+                    html += `<div class="category">
+                        <div class="category-title">${categories[category]}</div>`;
+                    
+                    checks.forEach(check => {
+                        html += `<div class="check-item ${check.type}">
+                            <strong>${check.title}</strong><br>
+                            ${check.description}
+                        </div>`;
+                    });
+                    
+                    html += `</div>`;
+                }
+            });
+
+            return html;
+        }
+
+        // Initialize with sample content
+        document.addEventListener('DOMContentLoaded', function() {
+            const sampleHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sample Page for Testing</title>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="#main">Skip to main content</a></li>
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main id="main">
+        <h1>Welcome to Our Website</h1>
+        <p>This is a sample page to demonstrate accessibility features.</p>
+        
+        <section>
+            <h2>About Us</h2>
+            <p>We are committed to making the web accessible to everyone.</p>
+            <img src="team.jpg" alt="Our diverse team working together">
+        </section>
+        
+        <section>
+            <h2>Contact Form</h2>
+            <form>
+                <fieldset>
+                    <legend>Personal Information</legend>
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" required>
+                    
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" required>
+                    
+                    <label for="message">Message:</label>
+                    <textarea id="message" rows="4"></textarea>
+                </fieldset>
+                
+                <button type="submit">Send Message</button>
+            </form>
+        </section>
+    </main>
+    
+    <footer role="contentinfo">
+        <p>&copy; 2024 Accessible Web Company. All rights reserved.</p>
+    </footer>
+</body>
+</html>`;
+            
+            document.getElementById('html-code').value = sampleHTML;
+        });
+    </script>
+</body>
+</html>
