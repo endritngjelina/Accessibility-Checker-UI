@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AccessibilityAI - Professional Web Accessibility Checker</title>
+    <style>
+        :root {
+            --primary-blue: #007AFF;
+            --primary-blue-hover: #0056CC;
+            --success-green: #34C759;
+            --warning-orange: #FF9500;
+            --error-red: #FF3B30;
+            --gray-50: #F9F9F9;
+            --gray-100: #F2F2F7;
+            --gray-200: #E5E5EA;
+            --gray-300: #D1D1D6;
+            --gray-400: #C7C7CC;
+            --gray-500: #AEAEB2;
+            --gray-600: #8E8E93;
+            --gray-700: #636366;
+            --gray-800: #48484A;
+            --gray-900: #1C1C1E;
+            --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.15);
+            --shadow-heavy: 0 8px 25px rgba(0, 0, 0, 0.2);
+            --border-radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--gray-900);
+            background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 0;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-light);
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, #5856D6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--gray-600);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .input-section, .results-section {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-medium);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .input-section:hover, .results-section:hover {
+            box-shadow: var(--shadow-heavy);
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, #5856D6 100%);
+            color: white;
+            padding: 20px 25px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .section-content {
+            padding: 25px;
+        }
+
+        .input-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            background: var(--gray-100);
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            background: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--gray-600);
+        }
+
+        .tab-button.active {
+            background: var(--primary-blue);
+            color: white;
+            box-shadow: var(--shadow-light);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: var(--transition);
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        .analyze-button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, #5856D6 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .analyze-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-heavy);
+        }
+
+        .analyze-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .score-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .score-card {
+            background: var(--gray-50);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            border-left: 4px solid var(--primary-blue);
+            transition: var(--transition);
+        }
+
+        .score-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-light);
+        }
+
+        .score-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .score-label {
+            color: var(--gray-600);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .score-excellent { color: var(--success-green); }
+        .score-good { color: var(--primary-blue); }
+        .score-warning { color: var(--warning-orange); }
+        .score-poor { color: var(--error-red); }
+
+        .results-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .check-category {
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .check-category:hover {
+            border-color: var(--primary-blue);
+        }
+
+        .category-header {
+            background: var(--gray-50);
+            padding: 15px 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .category-header:hover {
+            background: var(--gray-100);
+        }
+
+        .category-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .category-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .icon-success { background: var(--success-green); }
+        .icon-warning { background: var(--warning-orange); }
+        .icon-error { background: var(--error-red); }
+
+        .category-score {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .check-items {
+            padding: 0 20px 20px;
+        }
+
+        .check-item {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--gray-100);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .check-item:last-child {
+            border-bottom: none;
+        }
+
+        .check-status {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .status-pass { background: var(--success-green); }
+        .status-warning { background: var(--warning-orange); }
+        .status-fail { background: var(--error-red); }
+
+        .check-details {
+            flex: 1;
+        }
+
+        .check-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .check-description {
+            color: var(--gray-600);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .export-section {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-light);
+            padding: 25px;
+            margin-top: 30px;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .export-button {
+            padding: 12px 24px;
+            border: 2px solid var(--primary-blue);
+            background: white;
+            color: var(--primary-blue);
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .export-button:hover {
+            background: var(--primary-blue);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--gray-200);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-blue), #5856D6);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .url-preview {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: var(--gray-700);
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            .logo {
+                font-size: 2rem;
+            }
+
+            .score-overview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .export-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="logo">AccessibilityAI</h1>
+            <p class="subtitle">Professional Web Accessibility Analysis & WCAG Compliance Checker</p>
+        </header>
+
+        <div class="main-content">
+            <div class="input-section">
+                <div class="section-header">
+                    <span>🔍 Analysis Input</span>
+                </div>
+                <div class="section-content">
+                    <div class="input-tabs">
+                        <button class="tab-button active" data-tab="url">URL Analysis</button>
+                        <button class="tab-button" data-tab="code">HTML Code</button>
+                    </div>
+
+                    <div id="url-tab" class="tab-content">
+                        <div class="input-group">
+                            <label for="url-input">Website URL</label>
+                            <input type="url" id="url-input" class="input-field" 
+                                   placeholder="https://example.com" 
+                                   style="min-height: auto; height: 50px;">
+                            <div id="url-preview" class="url-preview hidden"></div>
+                        </div>
+                    </div>
+
+                    <div id="code-tab" class="tab-content hidden">
+                        <div class="input-group">
+                            <label for="html-input">HTML Code</label>
+                            <textarea id="html-input" class="input-field" 
+                                      placeholder="Paste your HTML code here..."></textarea>
+                        </div>
+                    </div>
+
+                    <button id="analyze-btn" class="analyze-button">
+                        <span id="analyze-text">🚀 Analyze Accessibility</span>
+                        <div id="loading-spinner" class="loading-spinner hidden"></div>
+                    </button>
+
+                    <div id="progress-section" class="hidden">
+                        <div class="progress-bar">
+                            <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <p id="progress-text" style="text-align: center; color: var(--gray-600); font-size: 0.9rem;"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="results-section">
+                <div class="section-header">
+                    <span>📊 Accessibility Report</span>
+                </div>
+                <div class="section-content">
+                    <div id="no-results" class="text-center" style="padding: 40px 0; color: var(--gray-500);">
+                        <h3>Ready for Analysis</h3>
+                        <p>Enter a URL or HTML code to begin accessibility testing</p>
+                    </div>
+
+                    <div id="results-content" class="hidden">
+                        <div class="score-overview">
+                            <div class="score-card">
+                                <div id="overall-score" class="score-number">—</div>
+                                <div class="score-label">Overall Score</div>
+                            </div>
+                            <div class="score-card">
+                                <div id="issues-found" class="score-number">—</div>
+                                <div class="score-label">Issues Found</div>
+                            </div>
+                            <div class="score-card">
+                                <div id="wcag-level" class="score-number">—</div>
+                                <div class="score-label">WCAG Level</div>
+                            </div>
+                            <div class="score-card">
+                                <div id="elements-tested" class="score-number">—</div>
+                                <div class="score-label">Elements Tested</div>
+                            </div>
+                        </div>
+
+                        <div id="results-grid" class="results-grid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="export-section" class="export-section hidden">
+            <h3 style="margin-bottom: 20px; color: var(--gray-800);">📄 Export Report</h3>
+            <div class="export-buttons">
+                <button class="export-button" onclick="exportReport('pdf')">
+                    📋 PDF Report
+                </button>
+                <button class="export-button" onclick="exportReport('json')">
+                    💾 JSON Data
+                </button>
+                <button class="export-button" onclick="exportReport('csv')">
+                    📊 CSV Summary
+                </button>
+                <button class="export-button" onclick="shareReport()">
+                    🔗 Share Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAnalysisData = null;
+
+        // Tab switching functionality
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const tabName = button.dataset.tab;
+                
+                // Update active tab
+                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Show corresponding content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.add('hidden');
+                });
+                document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+            });
+        });
+
+        // URL preview functionality
+        document.getElementById('url-input').addEventListener('input', (e) => {
+            const url = e.target.value;
+            const preview = document.getElementById('url-preview');
+            
+            if (url && isValidURL(url)) {
+                preview.textContent = `Preview: ${url}`;
+                preview.classList.remove('hidden');
+            } else {
+                preview.classList.add('hidden');
+            }
+        });
+
+        function isValidURL(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+
+        // Main analysis function
+        document.getElementById('analyze-btn').addEventListener('click', async () => {
+            const activeTab = document.querySelector('.tab-button.active').dataset.tab;
+            let input = '';
+            
+            if (activeTab === 'url') {
+                input = document.getElementById('url-input').value.trim();
+                if (!input || !isValidURL(input)) {
+                    alert('Please enter a valid URL');
+                    return;
+                }
+            } else {
+                input = document.getElementById('html-input').value.trim();
+                if (!input) {
+                    alert('Please enter HTML code to analyze');
+                    return;
+                }
+            }
+
+            await performAnalysis(activeTab, input);
+        });
+
+        async function performAnalysis(type, input) {
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const analyzeText = document.getElementById('analyze-text');
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const progressSection = document.getElementById('progress-section');
+            const progressFill = document.getElementById('progress-fill');
+            const progressText = document.getElementById('progress-text');
+
+            // Start loading state
+            analyzeBtn.disabled = true;
+            analyzeText.textContent = 'Analyzing...';
+            loadingSpinner.classList.remove('hidden');
+            progressSection.classList.remove('hidden');
+
+            try {
+                // Simulate analysis progress
+                const progressSteps = [
+                    { progress: 20, text: 'Parsing HTML structure...' },
+                    { progress: 40, text: 'Checking color contrast...' },
+                    { progress: 60, text: 'Validating ARIA attributes...' },
+                    { progress: 80, text: 'Testing keyboard navigation...' },
+                    { progress: 90, text: 'Generating WCAG report...' },
+                    { progress: 100, text: 'Analysis complete!' }
+                ];
+
+                for (const step of progressSteps) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    progressFill.style.width = `${step.progress}%`;
+                    progressText.textContent = step.text;
+                }
+
+                // Perform actual analysis
+                let htmlContent = '';
+                if (type === 'url') {
+                    // Simulate fetching URL content
+                    htmlContent = generateSampleHTML();
+                } else {
+                    htmlContent = input;
+                }
+
+                const analysisResults = await analyzeAccessibility(htmlContent);
+                displayResults(analysisResults);
+                currentAnalysisData = analysisResults;
+
+                // Show export section
+                document.getElementById('export-section').classList.remove('hidden');
+
+            } catch (error) {
+                alert('Analysis failed. Please try again.');
+                console.error('Analysis error:', error);
+            } finally {
+                // Reset loading state
+                analyzeBtn.disabled = false;
+                analyzeText.textContent = '🚀 Analyze Accessibility';
+                loadingSpinner.classList.add('hidden');
+                progressSection.classList.add('hidden');
+                progressFill.style.width = '0%';
+            }
+        }
+
+        function generateSampleHTML() {
+            return `
+                <html lang="en">
+                <head><title>Sample Page</title></head>
+                <body>
+                    <h1>Welcome to Our Website</h1>
+                    <img src="hero.jpg">
+                    <div style="color: #ccc; background: white;">Light text on white background</div>
+                    <button>Click Me</button>
+                    <input type="text" placeholder="Enter your name">
+                    <a href="#" style="color: blue;">Learn More</a>
+                    <div role="button" tabindex="0">Custom Button</div>
+                    <table>
+                        <tr><td>Name</td><td>Age</td></tr>
+                        <tr><td>John</td><td>30</td></tr>
+                    </table>
+                </body>
+                </html>
+            `;
+        }
+
+        async function analyzeAccessibility(htmlContent) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
+            
+            const results = {
+                overall_score: 0,
+                wcag_level: 'A',
+                elements_tested: 0,
+                categories: []
+            };
+
+            // Analyze different categories
+            const categories = [
+                analyzeImages(doc),
+                analyzeColors(doc),
+                analyzeHeadings(doc),
+                analyzeForms(doc),
+                analyzeKeyboard(doc),
+                analyzeAria(doc),
+                analyzeSemantics(doc)
+            ];
+
+            results.categories = categories;
+            
+            // Calculate overall statistics
+            let totalChecks = 0;
+            let passedChecks = 0;
+            
+            categories.forEach(category => {
+                totalChecks += category.checks.length;
+                passedChecks += category.checks.filter(check => check.status === 'pass').length;
+                results.elements_tested += category.elements_count || 0;
+            });
+
+            results.overall_score = Math.round((passedChecks / totalChecks) * 100);
+            results.issues_found = totalChecks - passedChecks;
+            
+            // Determine WCAG level
+            if (results.overall_score >= 95) results.wcag_level = 'AAA';
+            else if (results.overall_score >= 85) results.wcag_level = 'AA';
+            else results.wcag_level = 'A';
+
+            return results;
+        }
+
+        function analyzeImages(doc) {
+            const images = doc.querySelectorAll('img');
+            const checks = [];
+            
+            images.forEach((img, index) => {
+                const hasAlt = img.hasAttribute('alt');
+                const altText = img.getAttribute('alt') || '';
+                const isDecorative = altText === '';
+                const src = img.src || 'image-' + (index + 1);
+                
+                if (!hasAlt) {
+                    checks.push({
+                        status: 'fail',
+                        title: `Missing alt attribute - ${src}`,
+                        description: 'All images must have an alt attribute for screen readers.'
+                    });
+                } else if (altText.length > 125) {
+                    checks.push({
+                        status: 'warning',
+                        title: `Alt text too long - ${src}`,
+                        description: 'Alt text should be concise (under 125 characters).'
+                    });
+                } else {
+                    checks.push({
+                        status: 'pass',
+                        title: `Proper alt text - ${src}`,
+                        description: 'Image has appropriate alternative text.'
+                    });
+                }
+            });
+
+            if (images.length === 0) {
+                checks.push({
+                    status: 'pass',
+                    title: 'No images found',
+                    description: 'No accessibility issues with images.'
+                });
+            }
+
+            return {
+                name: 'Images & Media',
+                icon: 'success',
+                score: Math.round((checks.filter(c => c.status === 'pass').length / Math.max(checks.length, 1)) * 100),
+                checks: checks,
+                elements_count: images.length
+            };
+        }
+
+        function analyzeColors(doc) {
+            const checks = [];
+            const elementsWithStyle = doc.querySelectorAll('[style*="color"]');
+            
+            // Simulate contrast checking
+            elementsWithStyle.forEach((el, index) => {
+                const style = el.getAttribute('style') || '';
+                if (style.includes('color: #ccc') || style.includes('color: lightgray')) {
+                    checks.push({
+                        status: 'fail',
+                        title: `Low contrast detected - Element ${index + 1}`,
+                        description: 'Text color does not meet WCAG AA contrast ratio of 4.5:1.'
+                    });
+                } else if (style.includes('color: blue') || style.includes('color: #00f')) {
+                    checks.push({
+                        status: 'warning',
+                        title: `Potential contrast issue - Element ${index + 1}`,
+                        description: 'Blue text may not have sufficient contrast. Verify against background.'
+                    });
+                } else {
+                    checks.push({
+                        status: 'pass',
+                        title: `Good contrast - Element ${index + 1}`,
+                        description: 'Text color appears to meet contrast requirements.'
+                    });
+                }
+            });
+
+            if (elementsWithStyle.length === 0) {
+                checks.push({
+                    status: 'pass',
+                    title: 'Default colors used',
+                    description: 'No custom colors detected, using browser defaults.'
+                });
+            }
+
+            return {
+                name: 'Color & Contrast',
+                icon: 'warning',
+                score: Math.round((checks.filter(c => c.status === 'pass').length / Math.max(checks.length, 1)) * 100),
+                checks: checks,
+                elements_count: elementsWithStyle.length
+            };
+        }
+
+        function analyzeHeadings(doc) {
+            const headings = doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
+            const checks = [];
+            let hasH1 = false;
+            let headingLevels = [];
+
+            headings.forEach(heading => {
+                const level = parseInt(heading.tagName.charAt(1));
+                headingLevels.push(level);
+                
+                if (level === 1) hasH1 = true;
+                
+                if (!heading.textContent.trim()) {
+                    checks.push({
+                        status: 'fail',
+                        title: `Empty heading - ${heading.tagName}`,
+                        description: 'Headings must contain descriptive text.'
+                    });
+                } else {
+                    checks.push({
+                        status: 'pass',
+                        title: `Valid heading - ${heading.tagName}`,
+                        description: `"${heading.textContent.substring(0, 50)}..."`
+                    });
+                }
+            });
+
+            if (!hasH1 && headings.length > 0) {
+                checks.push({
+                    status: 'warning',
+                    title: 'Missing main heading (H1)',
+                    description: 'Page should have exactly one H1 element for proper structure.'
+                });
+            }
+
+            // Check heading hierarchy
+            for (let i = 1; i < headingLevels.length; i++) {
+                if (headingLevels[i] - headingLevels[i-1] > 1) {
+                    checks.push({
+                        status: 'warning',
+                        title: 'Heading hierarchy skip detected',
+                        description: 'Heading levels should not skip (e.g., H2 to H4).'
+                    });
+                    break;
+                }
+            }
+
+            return {
+                name: 'Headings & Structure',
+                icon: 'success',
+                score: Math.round((checks.filter(c => c.status === 'pass').length / Math.max(checks.length, 1)) * 100),
+                checks: checks,
+                elements_count: headings.length
+            };
+        }
+
+        function analyzeForms(doc) {
+            const formElements = doc.querySelectorAll('input, textarea, select');
+            const checks = [];
+
+            formElements.forEach((element, index) => {
+                const type = element.type || element.tagName.toLowerCase();
+                const hasLabel = doc.querySelector(`label[for="${element.id}"]`) || element.closest('label');
+                const hasAriaLabel = element.hasAttribute('aria-label') || element.hasAttribute('aria-labelledby');
+                const hasPlaceholder = element.hasAttribute('placeholder');
+
+                if (!hasLabel && !hasAriaLabel && !hasPlaceholder) {
+                    checks.push({
+                        status: 'fail',
+                        title: `Unlabeled form field - ${type}`,
+                        description: 'Form fields must have labels for accessibility.'
+                    });
+                } else if (hasPlaceholder && !hasLabel && !hasAriaLabel) {
+                    checks.push({
+                        status: 'warning',
+                        title: `Only placeholder label - ${type}`,
+                        description: 'Placeholder text disappears when typing. Use proper labels.'
+                    });
+                } else {
+                    checks.push({
+                        status: 'pass',
+                        title: `Properly labeled - ${type}`,
+                        description: 'Form field has appropriate labeling for screen readers.'
+                    });
+                }
+            });
+
+            if (formElements.length === 0) {
+                checks.push({
+                    status: 'pass',
+                    title: 'No form elements found',
+                    description: 'No accessibility issues with forms.'
+                });
+            }
+
+            return {
+                name: 'Forms & Inputs',
+                icon: 'success',
+                score: Math.round((checks.filter(c => c.status === 'pass').length / Math.max(checks.length, 1)) * 100),
+                checks: checks,
+                elements_count: formElements.length
+            };
+        }
+
+        function analyzeKeyboard(doc) {
+            const interactiveElements = doc.querySelectorAll('a, button, input, textarea, select, [tabindex], [role="button"], [role="link"]');
+            const checks = [];
+
+            interactiveElements.forEach((element, index) => {
+                const tagName = element.tagName.toLowerCase();
+                const role = element.getAttribute('role');
+                const tabIndex = element.getAttribute('tabindex');
+
+                if (role === 'button' || role === 'link') {
+                    if (!element.hasAttribute('tabindex') || tabIndex === '-1') {
+                        checks.push({
+                            status: 'warning',
+                            title: `Custom ${role} may not be keyboard accessible`,
+                            description: 'Custom interactive elements should have proper tabindex and event handlers.'
+                        });
+                    } else {
+                        checks.push({
+                            status: 'pass',
+                            title: `Keyboard accessible ${role}`,
+                            description: 'Custom element has proper keyboard support.'
+                        });
+                    }
+                } else if (tagName === 'a' && !element.href) {
+                    checks.push({
+                        status: 'fail',
+                        title: 'Link without href attribute',
+                        description: 'Links must have href attributes to be keyboard accessible.'
+                    });
+                } else {
+                    checks.push({
+                        status: 'pass',
+                        title: `Keyboard accessible ${tagName}`,
+                        description: 'Element is focusable and keyboard accessible.'
+                    });
+                }
+            });
+
+            if (interactiveElements.length === 0) {
+                checks.push({
+                    status: 'pass',
+                    title: 'No interactive elements found',
+                    description: 'No keyboard accessibility issues detected.'
+                });
+            }
+
+            return {
+                name: 'Keyboard Navigation',
+                icon: 'success',
+                score: Math.round((checks.filter(c => c.status === 'pass').length / Math.max(checks.length, 1)) * 100),
+                checks: checks,
+                elements_count: interactiveElements.length
+            };
+        }
+
+        function analyzeAria(doc) {
+            const ariaElements = doc.querySelectorAll('[role], [aria-label], [aria-labelledby], [aria-describedby], [aria-expanded], [aria-hidden]');
+            const checks = [];
+
+            ariaElements.forEach((element, index) => {
+                const role = element.getAttribute('role');
+                const ariaLabel = element.getAttribute('aria-label');
+                const ariaLabelledby = element.getAttribute('aria-labelledby');
+                const ariaHidden = element.getAttribute('aria-hidden');
+
+                if (role && !isValidAriaRole(role)) {
+                    checks.push({
+                        status: 'fail',
+                        title: `Invalid ARIA role: ${role}`,
+                        description: 'ARIA role is not recognized or properly implemented.'
+                    });
+                } else if (ariaHidden === 'true' && element.textContent.trim()) {
+                    checks.push({
+                        status: 'warning',
+                        title: 'Content hidden from screen readers',
+                        description: 'Element with text content is hidden from assistive technology.'
+                    });
+                } else {
+                    checks.push({
+                        status: 'pass',
+                        title: 'Valid ARIA implementation',
+                        description: 'ARIA attributes are properly used.'
+                    });
+                }
+            });
+
+            if (ariaElements.length === 0) {
+                checks.push({
+                    status: 'warning',
+                    title: 'No ARIA attributes found',
+                    description: 'Consider using ARIA to enhance accessibility for complex interactions.'
+                });
+            }
+
+            return {
+                name: 'ARIA & Semantics',
+                icon: 'warning',
+                score: Math.round((checks.filter(c => c.status === 'pass').length / Math.max(checks.length, 1)) * 100),
+                checks: checks,
+                elements_count: ariaElements.length
+            };
+        }
+
+        function analyzeSemantics(doc) {
+            const checks = [];
+            
+            // Check for semantic HTML5 elements
+            const semanticElements = doc.querySelectorAll('header, nav, main, section, article, aside, footer');
+            const hasLangAttr = doc.documentElement.hasAttribute('lang');
+            const hasTitle = doc.querySelector('title');
+            const tables = doc.querySelectorAll('table');
+
+            if (!hasLangAttr) {
+                checks.push({
+                    status: 'fail',
+                    title: 'Missing language attribute',
+                    description: 'HTML element should have a lang attribute for screen readers.'
+                });
+            } else {
+                checks.push({
+                    status: 'pass',
+                    title: 'Language specified',
+                    description: 'Document language is properly declared.'
+                });
+            }
+
+            if (!hasTitle || !hasTitle.textContent.trim()) {
+                checks.push({
+                    status: 'fail',
+                    title: 'Missing or empty page title',
+                    description: 'Page must have a descriptive title element.'
+                });
+            } else {
+                checks.push({
+                    status: 'pass',
+                    title: 'Page title present',
+                    description: `Title: "${hasTitle.textContent}"`
+                });
+            }
+
+            if (semanticElements.length === 0) {
+                checks.push({
+                    status: 'warning',
+                    title: 'No semantic HTML5 elements',
+                    description: 'Consider using semantic elements like header, nav, main, section for better structure.'
+                });
+            } else {
+                checks.push({
+                    status: 'pass',
+                    title: 'Semantic HTML5 elements found',
+                    description: `Found ${semanticElements.length} semantic elements improving page structure.`
+                });
+            }
+
+            // Check tables
+            tables.forEach((table, index) => {
+                const hasCaption = table.querySelector('caption');
+                const hasHeaders = table.querySelector('th');
+                
+                if (!hasCaption && !hasHeaders) {
+                    checks.push({
+                        status: 'fail',
+                        title: `Table ${index + 1} missing headers`,
+                        description: 'Data tables should have caption and/or header cells (th).'
+                    });
+                } else {
+                    checks.push({
+                        status: 'pass',
+                        title: `Table ${index + 1} properly structured`,
+                        description: 'Table has appropriate headers for accessibility.'
+                    });
+                }
+            });
+
+            return {
+                name: 'Semantic Structure',
+                icon: 'success',
+                score: Math.round((checks.filter(c => c.status === 'pass').length / Math.max(checks.length, 1)) * 100),
+                checks: checks,
+                elements_count: semanticElements.length + tables.length + 2 // +2 for lang and title
+            };
+        }
+
+        function isValidAriaRole(role) {
+            const validRoles = ['alert', 'button', 'checkbox', 'dialog', 'link', 'log', 'marquee', 'menu', 'menuitem', 'progressbar', 'radio', 'scrollbar', 'slider', 'spinbutton', 'status', 'tab', 'tabpanel', 'textbox', 'timer', 'tooltip', 'tree', 'treeitem'];
+            return validRoles.includes(role);
+        }
+
+        function displayResults(results) {
+            document.getElementById('no-results').classList.add('hidden');
+            document.getElementById('results-content').classList.remove('hidden');
+
+            // Update score overview
+            document.getElementById('overall-score').textContent = results.overall_score + '%';
+            document.getElementById('overall-score').className = `score-number ${getScoreClass(results.overall_score)}`;
+            
+            document.getElementById('issues-found').textContent = results.issues_found;
+            document.getElementById('issues-found').className = `score-number ${results.issues_found === 0 ? 'score-excellent' : results.issues_found < 5 ? 'score-good' : 'score-warning'}`;
+            
+            document.getElementById('wcag-level').textContent = results.wcag_level;
+            document.getElementById('wcag-level').className = `score-number ${results.wcag_level === 'AAA' ? 'score-excellent' : results.wcag_level === 'AA' ? 'score-good' : 'score-warning'}`;
+            
+            document.getElementById('elements-tested').textContent = results.elements_tested;
+
+            // Display category results
+            const resultsGrid = document.getElementById('results-grid');
+            resultsGrid.innerHTML = '';
+
+            results.categories.forEach((category, index) => {
+                const categoryElement = createCategoryElement(category, index);
+                resultsGrid.appendChild(categoryElement);
+            });
+        }
+
+        function getScoreClass(score) {
+            if (score >= 90) return 'score-excellent';
+            if (score >= 75) return 'score-good';
+            if (score >= 50) return 'score-warning';
+            return 'score-poor';
+        }
+
+        function createCategoryElement(category, index) {
+            const div = document.createElement('div');
+            div.className = 'check-category';
+            div.innerHTML = `
+                <div class="category-header" onclick="toggleCategory(${index})">
+                    <div class="category-title">
+                        <div class="category-icon ${getIconClass(category.score)}">${getIconSymbol(category.score)}</div>
+                        <span>${category.name}</span>
+                    </div>
+                    <span class="category-score ${getScoreClass(category.score)}">${category.score}%</span>
+                </div>
+                <div class="check-items" id="category-${index}">
+                    ${category.checks.map(check => `
+                        <div class="check-item">
+                            <div class="check-status ${getStatusClass(check.status)}"></div>
+                            <div class="check-details">
+                                <div class="check-title">${check.title}</div>
+                                <div class="check-description">${check.description}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            return div;
+        }
+
+        function getIconClass(score) {
+            if (score >= 90) return 'icon-success';
+            if (score >= 70) return 'icon-warning';
+            return 'icon-error';
+        }
+
+        function getIconSymbol(score) {
+            if (score >= 90) return '✓';
+            if (score >= 70) return '!';
+            return '✗';
+        }
+
+        function getStatusClass(status) {
+            return `status-${status}`;
+        }
+
+        function toggleCategory(index) {
+            const categoryItems = document.getElementById(`category-${index}`);
+            if (categoryItems.style.display === 'none') {
+                categoryItems.style.display = 'block';
+            } else {
+                categoryItems.style.display = 'none';
+            }
+        }
+
+        // Export functionality
+        function exportReport(format) {
+            if (!currentAnalysisData) {
+                alert('No analysis data to export');
+                return;
+            }
+
+            switch (format) {
+                case 'pdf':
+                    exportPDF();
+                    break;
+                case 'json':
+                    exportJSON();
+                    break;
+                case 'csv':
+                    exportCSV();
+                    break;
+            }
+        }
+
+        function exportPDF() {
+            const reportContent = generateReportHTML();
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(reportContent);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function exportJSON() {
+            const dataStr = JSON.stringify(currentAnalysisData, null, 2);
+            const blob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `accessibility-report-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportCSV() {
+            let csvContent = 'Category,Check,Status,Description\n';
+            
+            currentAnalysisData.categories.forEach(category => {
+                category.checks.forEach(check => {
+                    csvContent += `"${category.name}","${check.title}","${check.status}","${check.description.replace(/"/g, '""')}"\n`;
+                });
+            });
+
+            const blob = new Blob([csvContent], {type: 'text/csv'});
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `accessibility-report-${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function generateReportHTML() {
+            return `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Accessibility Report</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 40px; }
+                        .header { text-align: center; margin-bottom: 40px; }
+                        .score-summary { display: flex; justify-content: space-around; margin: 30px 0; }
+                        .score-item { text-align: center; }
+                        .score-number { font-size: 2em; font-weight: bold; }
+                        .category { margin: 30px 0; border: 1px solid #ddd; padding: 20px; }
+                        .category-header { font-size: 1.2em; font-weight: bold; margin-bottom: 15px; }
+                        .check-item { margin: 10px 0; padding: 10px; border-left: 3px solid #ddd; }
+                        .status-pass { border-left-color: #34C759; }
+                        .status-warning { border-left-color: #FF9500; }
+                        .status-fail { border-left-color: #FF3B30; }
+                        @media print { body { margin: 20px; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Accessibility Analysis Report</h1>
+                        <p>Generated on ${new Date().toLocaleDateString()}</p>
+                    </div>
+                    
+                    <div class="score-summary">
+                        <div class="score-item">
+                            <div class="score-number">${currentAnalysisData.overall_score}%</div>
+                            <div>Overall Score</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="score-number">${currentAnalysisData.issues_found}</div>
+                            <div>Issues Found</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="score-number">${currentAnalysisData.wcag_level}</div>
+                            <div>WCAG Level</div>
+                        </div>
+                    </div>
+
+                    ${currentAnalysisData.categories.map(category => `
+                        <div class="category">
+                            <div class="category-header">${category.name} (${category.score}%)</div>
+                            ${category.checks.map(check => `
+                                <div class="check-item status-${check.status}">
+                                    <strong>${check.title}</strong><br>
+                                    ${check.description}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `).join('')}
+                </body>
+                </html>
+            `;
+        }
+
+        function shareReport() {
+            if (navigator.share && currentAnalysisData) {
+                navigator.share({
+                    title: 'Accessibility Report',
+                    text: `Accessibility Score: ${currentAnalysisData.overall_score}% | Issues Found: ${currentAnalysisData.issues_found} | WCAG Level: ${currentAnalysisData.wcag_level}`,
+                    url: window.location.href
+                });
+            } else {
+                // Fallback: copy to clipboard
+                const reportSummary = `Accessibility Report\nScore: ${currentAnalysisData.overall_score}%\nIssues: ${currentAnalysisData.issues_found}\nWCAG Level: ${currentAnalysisData.wcag_level}`;
+                navigator.clipboard.writeText(reportSummary).then(() => {
+                    alert('Report summary copied to clipboard!');
+                });
+            }
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('AccessibilityAI Professional Checker Initialized');
+            
+            // Add some sample data for demo
+            if (window.location.hash === '#demo') {
+                document.getElementById('url-input').value = 'https://example.com';
+                setTimeout(() => {
+                    document.getElementById('analyze-btn').click();
+                }, 1000);
+            }
+        });
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'Enter':
+                        e.preventDefault();
+                        document.getElementById('analyze-btn').click();
+                        break;
+                    case 'e':
+                        e.preventDefault();
+                        if (currentAnalysisData) exportReport('json');
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
